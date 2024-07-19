@@ -1,6 +1,8 @@
 package com.generation.blogpessoal.model;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -11,6 +13,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
@@ -44,14 +48,33 @@ public class Usuario {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.REMOVE)
 	@JsonIgnoreProperties("usuario")
 	private List<Postagem> postagem;
+	
+	 @ManyToMany(fetch = FetchType.EAGER)
+	    @JoinTable(name = "user_roles")
+		@JsonIgnoreProperties("users")
+	    private Set<Role> roles = new HashSet<Role>();
 
 
+	public void setRoles(Set<Role> roles) {
+		this.roles = roles;
+	}
+
+	public Usuario(Long id, String nome, String usuario, String senha, String foto, Set<Role> roles) {
+		this.id = id;
+		this.nome = nome;
+		this.usuario = usuario;
+		this.senha = senha;
+		this.foto = foto;
+		this.roles = roles;
+	}
+	
 	public Usuario(Long id, String nome, String usuario, String senha, String foto) {
 		this.id = id;
 		this.nome = nome;
 		this.usuario = usuario;
 		this.senha = senha;
 		this.foto = foto;
+
 	}
 	
 	public Usuario() {}
@@ -103,5 +126,11 @@ public class Usuario {
 	public void setPostagem(List<Postagem> postagem) {
 		this.postagem = postagem;
 	}
+
+	public Set<Role> getRoles() {
+		return roles;
+	}
+
+
 
 }

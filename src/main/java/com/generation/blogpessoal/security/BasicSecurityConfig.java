@@ -66,6 +66,7 @@ public class BasicSecurityConfig {
 	                .requestMatchers("/usuarios/cadastrar").permitAll()
 	                .requestMatchers("/error/**").permitAll()
 	                .requestMatchers(HttpMethod.OPTIONS).permitAll()
+	                .requestMatchers("/roles").hasRole("ADMIN")
 	                .anyRequest().authenticated())
 	        .authenticationProvider(authenticationProvider())
 	        .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)

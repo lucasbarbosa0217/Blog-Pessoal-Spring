@@ -1,7 +1,10 @@
 package com.generation.blogpessoal.controller;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.generation.blogpessoal.model.UsuarioLogin;
+import com.generation.blogpessoal.model.Role;
 import com.generation.blogpessoal.model.Usuario;
+import com.generation.blogpessoal.repository.RoleRepository;
 import com.generation.blogpessoal.repository.UsuarioRepository;
 import com.generation.blogpessoal.service.UsuarioService;
 
@@ -33,6 +38,9 @@ public class UsuarioController {
 
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+	
+	@Autowired
+	private RoleRepository roleRepository;
 	
 	@GetMapping("/all")
 	public ResponseEntity <List<Usuario>> getAll(){
@@ -60,6 +68,14 @@ public class UsuarioController {
 	@PostMapping("/cadastrar")
 	public ResponseEntity<Usuario> postUsuario(@RequestBody @Valid Usuario usuario) {
 
+		Optional<Set<Role>> roles = Optional.ofNullable(usuario.getRoles());
+		
+		if(roles.isPresent()) {
+			usuario.setRoles(null);
+			usuario.setRoles(new HashSet<Role>(Arrays.asList(roleRepository.findByName("ROLE_USER").get())));
+		}
+		
+		
 		return usuarioService.cadastrarUsuario(usuario)
 			.map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(resposta))
 			.orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
