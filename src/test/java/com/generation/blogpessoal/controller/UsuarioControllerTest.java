@@ -63,10 +63,8 @@ public class UsuarioControllerTest {
 	public void emailDeveSerValido() {
 		HttpEntity<Usuario> corpoRequisicao = new HttpEntity<Usuario>(new Usuario(0L, 
 				"Paulo Antunes", "paulo_antunesemail.com.br", "13465278", "-"));;
-
 				ResponseEntity<Usuario> corpoResposta = testRestTemplate
 					.exchange("/usuarios/cadastrar", HttpMethod.POST, corpoRequisicao, Usuario.class);
-
 				assertEquals(HttpStatus.BAD_REQUEST, corpoResposta.getStatusCode());
 	}
 	
