@@ -61,7 +61,7 @@ public class PostagemController {
 	@PostMapping
 	public ResponseEntity<Postagem> post (@Valid @RequestBody Postagem postagem){
 		
-		Optional<Tema> tema = Optional.of(postagem.getTema());
+		Optional<Tema> tema = Optional.ofNullable(postagem.getTema());
 		if(tema.isPresent()) {
 		if (temaRepository.existsById(postagem.getTema().getId())) {
 			return ResponseEntity.status(HttpStatus.CREATED).body(postagemRepository.save(postagem));
@@ -74,7 +74,7 @@ public class PostagemController {
 	@PutMapping
 	public ResponseEntity<Postagem> put (@Valid @RequestBody Postagem postagem){
 		
-		Optional<Tema> tema = Optional.of(postagem.getTema());
+		Optional<Tema> tema = Optional.ofNullable(postagem.getTema());
 		if(tema.isPresent()) {
 		if (postagemRepository.existsById(postagem.getId())) {
 			if (temaRepository.existsById(postagem.getTema().getId())) {
