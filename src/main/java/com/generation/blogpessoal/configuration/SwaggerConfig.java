@@ -3,6 +3,7 @@ package com.generation.blogpessoal.configuration;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -28,7 +29,7 @@ public class SwaggerConfig {
                 .contact(new Contact()
                     .name("Lucas Souza Barbosa")
                     .url("https://github.com/lucasbarbosa0217")
-                    .email("lucasbarbosa0217@gmail.cm")))
+                    .email("lucasbarbosa0217@gmail.com")))
             .externalDocs(new ExternalDocumentation()
                 .description("Github")
                 .url("https://github.com/lucasbarbosa0217/Blog-Pessoal-Spring"));
