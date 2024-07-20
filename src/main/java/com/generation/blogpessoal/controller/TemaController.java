@@ -1,5 +1,6 @@
 package com.generation.blogpessoal.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.generation.blogpessoal.model.Postagem;
 import com.generation.blogpessoal.model.Tema;
 import com.generation.blogpessoal.repository.TemaRepository;
 
@@ -54,16 +56,25 @@ public class TemaController {
     
     @PostMapping
     public ResponseEntity<Tema> post(@Valid @RequestBody Tema tema){
+		tema.setPostagem(new ArrayList<Postagem>());
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(temaRepository.save(tema));
     }
     
     @PutMapping
     public ResponseEntity<Tema> put(@Valid @RequestBody Tema tema){
-        return temaRepository.findById(tema.getId())
-            .map(resposta -> ResponseEntity.status(HttpStatus.CREATED)
-            .body(temaRepository.save(tema)))
-            .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    	Optional<Tema> temaBd = temaRepository.findById(tema.getId());
+    	
+    	if(temaBd.isPresent()) {
+    		if(temaBd.get().getPostagem() != null) {
+    			tema.setPostagem(temaBd.get().getPostagem());
+    		}else {
+    			tema.setPostagem(new ArrayList<Postagem>());
+    		}
+    		return ResponseEntity.status(HttpStatus.OK).body(temaRepository.save(tema));
+    	}
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Este tema não existe!");
     }
     
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -72,7 +83,7 @@ public class TemaController {
         Optional<Tema> tema = temaRepository.findById(id);
         
         if(tema.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Este tema não existe!");
         
         temaRepository.deleteById(id);              
     }

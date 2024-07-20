@@ -49,6 +49,10 @@ public class Usuario {
 	@JsonIgnoreProperties("usuario")
 	private List<Postagem> postagem;
 	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.REMOVE)
+	@JsonIgnoreProperties("usuario")
+	private List<Comentario> comentario;
+	
 	 @ManyToMany(fetch = FetchType.EAGER)
 	    @JoinTable(name = "user_roles")
 		@JsonIgnoreProperties("users")

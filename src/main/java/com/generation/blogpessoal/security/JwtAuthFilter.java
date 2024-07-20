@@ -63,7 +63,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }catch(ExpiredJwtException | BadCredentialsException |UnsupportedJwtException | MalformedJwtException 
                 | SignatureException | ResponseStatusException e){
             response.setStatus(HttpStatus.FORBIDDEN.value());
-
             return;
         }
     }

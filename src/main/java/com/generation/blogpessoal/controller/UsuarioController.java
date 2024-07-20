@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.generation.blogpessoal.model.UsuarioLogin;
 import com.generation.blogpessoal.model.Role;
@@ -24,6 +24,9 @@ import com.generation.blogpessoal.model.Usuario;
 import com.generation.blogpessoal.repository.RoleRepository;
 import com.generation.blogpessoal.repository.UsuarioRepository;
 import com.generation.blogpessoal.service.UsuarioService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.validation.Valid;
 
@@ -84,11 +87,30 @@ public class UsuarioController {
 
 	@PutMapping("/atualizar")
 	public ResponseEntity<Usuario> putUsuario(@Valid @RequestBody Usuario usuario) {
-		
-		return usuarioService.atualizarUsuario(usuario)
-			.map(resposta -> ResponseEntity.status(HttpStatus.OK).body(resposta))
-			.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-		
+	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+	    String username = null;
+	    boolean isAdmin = false;
+
+	    if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+	        username = ((UserDetails) authentication.getPrincipal()).getUsername();
+	        isAdmin = ((UserDetails) authentication.getPrincipal()).getAuthorities()
+	                .stream()
+	                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
+	    }
+
+	    Optional<Usuario> usuarioBanco = usuarioRepository.findById(usuario.getId());
+	    if (usuarioBanco.isPresent()) {
+	        if (username.equals(usuarioBanco.get().getUsuario()) || isAdmin) {
+	            return usuarioService.atualizarUsuario(usuario)
+	                    .map(resposta -> ResponseEntity.status(HttpStatus.OK).body(resposta))
+	                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+	        } else {
+	    	    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "O usuário logado não é o mesmo que está sendo editado!");
+	        }
+	    } else {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+	    }
 	}
 
 }
