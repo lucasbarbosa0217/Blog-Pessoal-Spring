@@ -22,10 +22,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+
 @Entity
 @Table(name = "tb_usuarios")
 public class Usuario {
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -38,6 +39,7 @@ public class Usuario {
 	@Email(message = "O Atributo Usuário deve ser um email válido!")
 	private String usuario;
 
+	@JsonIgnoreProperties("senha")
 	@NotBlank(message = "O Atributo Senha é Obrigatório!")
 	@Size(min = 8, message = "A Senha deve ter no mínimo 8 caracteres")
 	private String senha;
@@ -46,11 +48,20 @@ public class Usuario {
 	private String foto;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.REMOVE)
-	@JsonIgnoreProperties("usuario")
+	@JsonIgnoreProperties({"postagem", "comentario", "usuario"})
 	private List<Postagem> postagem;
 	
+	
+	public List<Comentario> getComentario() {
+		return comentario;
+	}
+
+	public void setComentario(List<Comentario> comentario) {
+		this.comentario = comentario;
+	}
+
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.REMOVE)
-	@JsonIgnoreProperties("usuario")
+	@JsonIgnoreProperties({"postagem", "usuario"})
 	private List<Comentario> comentario;
 	
 	 @ManyToMany(fetch = FetchType.EAGER)

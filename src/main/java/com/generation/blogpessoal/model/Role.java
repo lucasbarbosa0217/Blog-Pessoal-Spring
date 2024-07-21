@@ -20,7 +20,7 @@ public class Role {
     private String name;
 
     @ManyToMany(mappedBy = "roles")
-	@JsonIgnoreProperties("roles")
+	@JsonIgnoreProperties({"postagem", "roles", "comentario", "senha"})
     private Set<Usuario> users = new HashSet<Usuario>();
 
 	public Long getId() {

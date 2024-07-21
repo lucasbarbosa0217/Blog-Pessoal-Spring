@@ -86,8 +86,11 @@ public class PostagemController {
 		Optional<Usuario> usuarioBanco = usuarioRepository.findByUsuario(username);
 
 		Optional<Tema> tema = Optional.ofNullable(postagem.getTema());
+		Optional<Tema> temaBanco = Optional.empty();
+
 		if (tema.isPresent()) {
-			if (temaRepository.existsById(postagem.getTema().getId()) && usuarioBanco.isPresent()) {
+			temaBanco = temaRepository.findById(tema.get().getId());
+			if (temaBanco.isPresent() && usuarioBanco.isPresent()) {
 				postagem.setUsuario(usuarioBanco.get());
 				if (postagem.getComentario() == null) {
 					postagem.setComentario(new ArrayList<Comentario>());
@@ -96,12 +99,14 @@ public class PostagemController {
 			}
 		}
 
-		if (tema.isEmpty() && usuarioBanco.isEmpty()) {
+		if (temaBanco.isEmpty() && usuarioBanco.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O usuário e tema não existem!");
-		} else if (tema.isEmpty()) {
+		} else if (temaBanco.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tema não existe!");
-		} else {
+		} else if(usuarioBanco.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O usuário não existe!");
+		}else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
 
 	}
@@ -112,6 +117,8 @@ public class PostagemController {
 		Optional<Postagem> postagemBanco = postagemRepository.findById(postagem.getId());
 
 		Optional<Tema> tema = Optional.ofNullable(postagem.getTema());
+
+
 		if (tema.isPresent()) {
 			if (postagemBanco.isPresent()) {
 				if (temaRepository.existsById(postagem.getTema().getId())) {
