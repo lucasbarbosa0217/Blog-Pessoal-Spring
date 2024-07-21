@@ -54,6 +54,8 @@ public class UsuarioController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<Usuario> getById(@PathVariable Long id) {
+		System.out.println(usuarioRepository.findById(id).get().getComentario());
+		
 		return usuarioRepository.findById(id)
 			.map(resposta -> ResponseEntity.ok(resposta))
 			.orElse(ResponseEntity.notFound().build());
@@ -77,6 +79,8 @@ public class UsuarioController {
 			usuario.setRoles(null);
 			usuario.setRoles(new HashSet<Role>(Arrays.asList(roleRepository.findByName("ROLE_USER").get())));
 		}
+		
+		
 		
 		
 		return usuarioService.cadastrarUsuario(usuario)

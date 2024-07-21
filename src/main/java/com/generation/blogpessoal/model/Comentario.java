@@ -6,6 +6,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,7 +18,7 @@ import jakarta.validation.constraints.NotBlank;
 @Entity
 @Table(name = "tb_comentarios")
 public class Comentario {
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -26,14 +27,20 @@ public class Comentario {
 	private String conteudo;
 	
 	@ManyToOne
-	@JsonIgnoreProperties("postagem")
+	@JsonIgnoreProperties({"comentario", "usuario"})
 	private Postagem postagem;
 	
-	
+	public LocalDateTime getData() {
+		return data;
+	}
+
+	public void setData(LocalDateTime data) {
+		this.data = data;
+	}
+
 	@ManyToOne
-	@JsonIgnoreProperties("postagem")
+	@JsonIgnoreProperties({"senha", "comentario", "postagem"})
 	private Usuario usuario;
-	
 	
 	@UpdateTimestamp
 	private LocalDateTime data;
@@ -69,19 +76,5 @@ public class Comentario {
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
 	}
-
-	public Comentario() {
-		super();
-	}
-
-	public Comentario(Long id, @NotBlank(message = "O comentário precisa ter texto no conteúdo!") String conteudo,
-			Postagem postagem, Usuario usuario) {
-		super();
-		this.id = id;
-		this.conteudo = conteudo;
-		this.postagem = postagem;
-		this.usuario = usuario;
-	}
-	
-	
 }
+

@@ -44,7 +44,7 @@ public class Postagem {
 	private Tema tema;
 	
 	@ManyToOne
-	@JsonIgnoreProperties("postagem")
+	@JsonIgnoreProperties({"postagem", "senha", "comentario"})
 	private Usuario usuario;
 	
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "postagem", cascade = CascadeType.REMOVE)

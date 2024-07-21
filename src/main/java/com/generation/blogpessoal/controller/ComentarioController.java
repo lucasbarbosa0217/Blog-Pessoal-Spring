@@ -2,8 +2,6 @@ package com.generation.blogpessoal.controller;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
 import com.generation.blogpessoal.model.Comentario;
 import com.generation.blogpessoal.model.Usuario;
 import com.generation.blogpessoal.repository.ComentarioRepository;
@@ -46,17 +43,22 @@ public class ComentarioController {
 	private ComentarioRepository comentarioRepository;
 	
 	@GetMapping("/postagem/{id}")
-	public ResponseEntity<List<Comentario>> pegarComentariosPostagem(@PathVariable Long id){
-		List<Comentario> comentarios = comentarioRepository.findByPostagemId(id);
+	public ResponseEntity<List<Comentario>> pegarComentariosPostagem(@PathVariable Long  id){
 		
-		List<Comentario> comentarioDTO = comentarios.stream().map(comentario -> {
-			comentario.getUsuario().setSenha(null);
-			comentario.getUsuario().setPostagem(null);
-			comentario.getPostagem().setComentario(null);
-			return comentario;
-		}).collect(Collectors.toList());
+		 if(postagemRepository.existsById(id)) {
+			 return ResponseEntity.ok(comentarioRepository.findByPostagemId(id));
+		 }
+		 
+		 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		
-		return ResponseEntity.ok(comentarioDTO);
+	} 
+	
+	
+	@GetMapping("/{id}")
+	public ResponseEntity<Comentario> comentarioPorId(@PathVariable Long  id){
+		return comentarioRepository.findById(id)
+				.map(response -> ResponseEntity.ok(response))
+				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	} 
 	
 	
