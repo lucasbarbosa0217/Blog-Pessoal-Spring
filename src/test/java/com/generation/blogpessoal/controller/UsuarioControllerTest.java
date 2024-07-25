@@ -89,11 +89,7 @@ public class UsuarioControllerTest {
 	@Test
 	@DisplayName("Atualizar um Usuário")
 	public void deveAtualizarUmUsuario() {
-
-		Optional<Usuario> usuarioCadastrado = usuarioService.cadastrarUsuario(new Usuario(0L, 
-			"Juliana Andrews", "juliana_andrews@email.com.br", "juliana123", "-"));
-
-		Usuario usuarioUpdate = new Usuario(usuarioCadastrado.get().getId(), 
+		Usuario usuarioUpdate = new Usuario(usuarioRepository.findByUsuario("root@root.com").get().getId(),
 			"Juliana Andrews Ramos", "juliana_ramos@email.com.br", "juliana123" , "-");
 		
 		HttpEntity<Usuario> corpoRequisicao = new HttpEntity<Usuario>(usuarioUpdate);
@@ -103,7 +99,13 @@ public class UsuarioControllerTest {
 			.exchange("/usuarios/atualizar", HttpMethod.PUT, corpoRequisicao, Usuario.class);
 
 		assertEquals(HttpStatus.OK, corpoResposta.getStatusCode());
-		
+
+		Usuario user = usuarioRepository.findByUsuario("juliana_ramos@email.com.br").get();
+
+		user.setUsuario("root@root.com");
+		user.setSenha("rootroot");
+
+		usuarioService.atualizarUsuario(user);
 	}
 
 	@Test
