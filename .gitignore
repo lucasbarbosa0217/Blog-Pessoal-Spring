@@ -3,7 +3,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-
+/src/main/resources/blog-a5aab-firebase-adminsdk-iq4o2-9be4500547.json
 ### STS ###
 .apt_generated
 .classpath
