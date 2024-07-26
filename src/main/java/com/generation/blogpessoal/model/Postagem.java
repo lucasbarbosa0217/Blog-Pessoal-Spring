@@ -36,14 +36,14 @@ public class Postagem {
 	@Size(min = 10, max = 1000, message = "O atributo texto deve conter no mínimo 10 e no máximo 1000 caracteres")
 	private String texto;
 
-	private String urlPath;
+	private String urlpath;
 
-	public String getUrlPath() {
-		return urlPath;
+	public String getUrlpath() {
+		return urlpath;
 	}
 
-	public void setUrlPath(String urlPath) {
-		this.urlPath = urlPath;
+	public void setUrlpath(String urlPath) {
+		this.urlpath = urlPath;
 	}
 
 	@UpdateTimestamp

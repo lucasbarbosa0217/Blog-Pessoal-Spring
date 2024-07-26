@@ -1,6 +1,7 @@
 package com.generation.blogpessoal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,7 +14,6 @@ public interface PostagemRepository extends JpaRepository<Postagem, Long>{
 	public List<Postagem> findAllByTituloContainingIgnoreCase(@Param("titulo") String titulo);
 
 	public List<Postagem> findAllByTextoContainingIgnoreCase(@Param("texto") String texto);
-	public List<Postagem> findAllByUrlPathContainingIgnoreCase(@Param("urlPath") String urlPath);
-
+	public Optional<Postagem> findByUrlpath(@Param("urlpath") String urlpath);
 
 }

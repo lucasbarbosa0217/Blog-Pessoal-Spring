@@ -3,7 +3,10 @@ package com.generation.blogpessoal.controller;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,8 +72,10 @@ public class PostagemController {
     }
 
     @GetMapping("urlPath/{urlPath}")
-    public ResponseEntity<List<Postagem>> getByUrlPath(@PathVariable String urlPath) {
-        return ResponseEntity.ok(postRepository.findAllByUrlPathContainingIgnoreCase(urlPath));
+    public ResponseEntity<Postagem> getByUrlPath(@PathVariable String urlPath) {
+        return postRepository.findByUrlpath(urlPath)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post não existe."));
     }
 
     @PostMapping
@@ -81,12 +86,15 @@ public class PostagemController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O usuário logado não existe!");
         }
 
-        try {
-            String encodedString = URLEncoder.encode(post.getTitulo(), StandardCharsets.UTF_8.toString());
-            post.setUrlPath(encodedString);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+       String slugUrl = toSlug(post.getTitulo());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+        if(postRepository.findByUrlpath(slugUrl).isPresent()){
+            slugUrl = slugUrl + "-" +dateFormat.format(new Date());
+            slugUrl = toSlug(slugUrl);
         }
+
+        post.setUrlpath(slugUrl);
 
         Optional<Tema> theme = Optional.ofNullable(post.getTema());
         if (theme.isEmpty() || themeRepository.findById(theme.get().getId()).isEmpty()) {
@@ -150,5 +158,14 @@ public class PostagemController {
             }
         }
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o post!");
+    }
+
+    public static String toSlug(String title) {
+        String slug = title.toLowerCase();
+        slug = Normalizer.normalize(slug, Normalizer.Form.NFD);
+        slug = slug.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        slug = slug.replaceAll("[^a-z0-9\\s-]", "").replaceAll("\\s+", "-").replaceAll("-+", "-");
+        slug = slug.replaceAll("^-|-$", "");
+        return slug;
     }
 }
