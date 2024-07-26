@@ -1,15 +1,13 @@
 package com.generation.blogpessoal.service;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.UUID;
 
 import com.google.cloud.storage.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,12 +19,14 @@ import com.google.auth.oauth2.GoogleCredentials;
 @Service
 public class ImageService {
 
+    @Value("${firebase.secret}")
+    private String connectionString;
+
   private String uploadFile(File file, String fileName) throws IOException {
+      InputStream inputStream = new ByteArrayInputStream(connectionString.getBytes(StandardCharsets.UTF_8));
       fileName = "userProfileImage/"+ fileName;
       BlobId blobId = BlobId.of("blog-a5aab.appspot.com", fileName); // Replace with your bucker name
       BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("image/jpeg").build();
-      InputStream inputStream = ImageService.class.getClassLoader().getResourceAsStream("blog-a5aab-firebase-adminsdk-iq4o2-9be4500547.json"); // change the file name with your one
-      assert inputStream != null;
       Credentials credentials = GoogleCredentials.fromStream(inputStream);
       Storage storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
       Blob upload = storage.create(blobInfo, Files.readAllBytes(file.toPath()));

@@ -58,6 +58,9 @@ public class UsuarioController {
 	@Autowired
 	private AuthenticationService authenticationService;
 
+	private final List<String> allowedFileTypes = List.of("image/jpeg", "image/png", "image/webp", "image/gif");
+
+
 	@GetMapping("/all")
 	public ResponseEntity<List<Usuario>> getAll() {
 
@@ -93,18 +96,30 @@ public class UsuarioController {
 				.orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
 	}
 
-    @PostMapping("/cadastrar/foto")
-    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile multipartFile) {
+	@PostMapping("/cadastrar/foto")
+	public ResponseEntity<String> upload(@RequestParam("file") MultipartFile multipartFile) {
+		if (multipartFile.isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Por favor, selecione uma foto para carregar.");
+		}
+
+		String contentType = multipartFile.getContentType();
+		if (!allowedFileTypes.contains(contentType)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de arquivo não suportado. Apenas JPG, PNG, WEBP e GIF são permitidos.");
+		}
+
+		if (multipartFile.getSize() > 10 * 1024 * 1024) { // 10MB
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tamanho do arquivo excede o limite de 10MB.");
+		}
 
 		Optional<Usuario> usuarioBanco = authenticationService.getLoggedUser();
-		if(usuarioBanco.isPresent()) {
+		if (usuarioBanco.isPresent()) {
 			String url = imageService.upload(multipartFile);
 			usuarioBanco.get().setFoto(url);
 			usuarioRepository.save(usuarioBanco.get());
 			return ResponseEntity.ok(url);
 		}
 		throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário logado não encontrado no Banco de Dados.");
-    }
+	}
 	
 	@PutMapping("/atualizar")
 	public ResponseEntity<Usuario> putUsuario(@Valid @RequestBody Usuario usuario) {
