@@ -35,7 +35,17 @@ public class Postagem {
 	@NotBlank(message = "O atributo texto é Obrigatório!")
 	@Size(min = 10, max = 1000, message = "O atributo texto deve conter no mínimo 10 e no máximo 1000 caracteres")
 	private String texto;
-	
+
+	private String urlPath;
+
+	public String getUrlPath() {
+		return urlPath;
+	}
+
+	public void setUrlPath(String urlPath) {
+		this.urlPath = urlPath;
+	}
+
 	@UpdateTimestamp
 	private LocalDateTime data;
 	

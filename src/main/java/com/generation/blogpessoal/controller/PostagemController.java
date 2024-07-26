@@ -1,5 +1,8 @@
 package com.generation.blogpessoal.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,6 +74,13 @@ public class PostagemController {
 
         if (loggedUser.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O usuário logado não existe!");
+        }
+
+        try {
+            String encodedString = URLEncoder.encode(post.getTitulo(), StandardCharsets.UTF_8.toString());
+            post.setUrlPath(encodedString);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
 
         Optional<Tema> theme = Optional.ofNullable(post.getTema());
