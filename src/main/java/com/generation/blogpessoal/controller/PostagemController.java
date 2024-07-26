@@ -68,7 +68,7 @@ public class PostagemController {
         return ResponseEntity.ok(postRepository.findAllByTextoContainingIgnoreCase(text));
     }
 
-    @GetMapping("urlPath/{urlPath}}")
+    @GetMapping("urlPath/{urlPath}")
     public ResponseEntity<List<Postagem>> getByUrlPath(@PathVariable String urlPath) {
         return ResponseEntity.ok(postRepository.findAllByUrlPathContainingIgnoreCase(urlPath));
     }
