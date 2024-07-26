@@ -68,6 +68,11 @@ public class PostagemController {
         return ResponseEntity.ok(postRepository.findAllByTextoContainingIgnoreCase(text));
     }
 
+    @GetMapping("urlPath/{urlPath}}")
+    public ResponseEntity<List<Postagem>> getByUrlPath(@PathVariable String urlPath) {
+        return ResponseEntity.ok(postRepository.findAllByUrlPathContainingIgnoreCase(urlPath));
+    }
+
     @PostMapping
     public ResponseEntity<Postagem> post(@Valid @RequestBody Postagem post) {
         Optional<Usuario> loggedUser = authenticationService.getLoggedUser();
