@@ -1,6 +1,7 @@
 package com.generation.blogpessoal.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -26,6 +27,11 @@ public class AdminCreator {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	@Value("${admin.user.password}")
+	private String password;
+
+	@Value("${admin.user.email}")
+	private String email;
 	@PostConstruct
 	public void init() {
 		// Criar roles se não existirem
@@ -38,12 +44,12 @@ public class AdminCreator {
 		}
 
 		// Criar usuário admin se não existir
-		if (usuarioRepository.findByUsuario("admin@email.com").isEmpty()) {
+		if (usuarioRepository.findByUsuario(email).isEmpty()) {
 			Usuario admin = new Usuario();
-			admin.setId(1l);
+			admin.setId(1L);
 			admin.setNome("Admin");
-			admin.setUsuario("admin@email.com");
-			admin.setSenha(passwordEncoder.encode("admin123"));
+			admin.setUsuario(email);
+			admin.setSenha(passwordEncoder.encode(password));
 
 			Set<Role> roles = new HashSet<>();
 			roles.add(roleRepository.findByName("ROLE_ADMIN").get());

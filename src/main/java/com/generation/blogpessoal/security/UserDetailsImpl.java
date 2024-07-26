@@ -1,5 +1,6 @@
 package com.generation.blogpessoal.security;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import com.generation.blogpessoal.model.Usuario;
 
 public class UserDetailsImpl implements UserDetails {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private String userName;

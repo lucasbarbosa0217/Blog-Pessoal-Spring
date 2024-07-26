@@ -9,7 +9,5 @@ import com.generation.blogpessoal.model.Comentario;
 
 @Repository
 public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
-
-	
     List<Comentario> findByPostagemId(Long postagemId);
 }

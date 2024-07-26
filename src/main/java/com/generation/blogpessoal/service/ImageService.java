@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.UUID;
 
+import com.google.cloud.storage.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,24 +17,23 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.auth.Credentials;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 
 @Service
 public class ImageService {
 
   private String uploadFile(File file, String fileName) throws IOException {
+      fileName = "userProfileImage/"+ fileName;
       BlobId blobId = BlobId.of("blog-a5aab.appspot.com", fileName); // Replace with your bucker name
-      BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("image").build();
+      BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("image/jpeg").build();
       InputStream inputStream = ImageService.class.getClassLoader().getResourceAsStream("blog-a5aab-firebase-adminsdk-iq4o2-9be4500547.json"); // change the file name with your one
+      assert inputStream != null;
       Credentials credentials = GoogleCredentials.fromStream(inputStream);
       Storage storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
-      storage.create(blobInfo, Files.readAllBytes(file.toPath()));
+      Blob upload = storage.create(blobInfo, Files.readAllBytes(file.toPath()));
 
-      String DOWNLOAD_URL = "https://firebasestorage.googleapis.com/v0/b/blog-a5aab.appspot.com/o/"+fileName+"?alt=media";
-      return String.format(DOWNLOAD_URL, URLEncoder.encode(fileName, StandardCharsets.UTF_8));
+      String fileNameEncoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+
+      return "https://firebasestorage.googleapis.com/v0/b/blog-a5aab.appspot.com/o/"+fileNameEncoded+"?alt=media";
   }
 
   private File convertToFile(MultipartFile multipartFile, String fileName) throws IOException {
@@ -53,7 +53,7 @@ public class ImageService {
   public String upload(MultipartFile multipartFile) {
       try {
           String fileName = multipartFile.getOriginalFilename();                      
-          fileName = UUID.randomUUID().toString().concat(this.getExtension(fileName));  
+          fileName = UUID.randomUUID().toString().concat(this.getExtension(fileName));
           File file = this.convertToFile(multipartFile, fileName);                
           String URL = this.uploadFile(file, fileName);                                
           file.delete();

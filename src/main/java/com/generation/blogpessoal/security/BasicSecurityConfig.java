@@ -28,7 +28,6 @@ public class BasicSecurityConfig {
 
     @Bean
     UserDetailsService userDetailsService() {
-
         return new UserDetailsServiceImpl();
     }
 
@@ -77,9 +76,8 @@ public class BasicSecurityConfig {
 	        .authenticationProvider(authenticationProvider())
 	        .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
 	        .httpBasic(withDefaults());
-
+        
 		return http.build();
-
     }
 
 }

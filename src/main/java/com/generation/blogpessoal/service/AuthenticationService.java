@@ -18,25 +18,18 @@ public class AuthenticationService {
     public Optional<Usuario> getLoggedUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = null;
-
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             username = ((UserDetails) authentication.getPrincipal()).getUsername();
         }
-
         return usuarioRepository.findByUsuario(username);
     }
-
     public boolean isLoggedUserAdmin(){
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         boolean isAdmin = false;
-
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             isAdmin = ((UserDetails) authentication.getPrincipal()).getAuthorities().stream()
                     .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
         }
-
         return isAdmin;
     }
 }
