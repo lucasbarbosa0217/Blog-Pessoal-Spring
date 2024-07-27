@@ -1,15 +1,10 @@
 package com.generation.blogpessoal.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
 
 @Entity
 public class Role {
@@ -20,41 +15,41 @@ public class Role {
     private String name;
 
     @ManyToMany(mappedBy = "roles")
-	@JsonIgnoreProperties({"postagem", "roles", "comentario", "senha"})
-    private Set<Usuario> users = new HashSet<Usuario>();
+    @JsonIgnoreProperties({"blog", "roles", "comment", "password"})
+    private Set<User> users = new HashSet<User>();
 
-	public Long getId() {
-		return id;
-	}
+    public Role(String name) {
+        super();
+        this.name = name;
+    }
 
-	public Role(String name) {
-		super();
-		this.name = name;
-	}
-	
-	public Role() {
-	
-	}
+    public Role() {
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    }
 
-	public String getName() {
-		return name;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public Set<Usuario> getUsers() {
-		return users;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setUsers(Set<Usuario> users) {
-		this.users = users;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
- 
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
+
 }

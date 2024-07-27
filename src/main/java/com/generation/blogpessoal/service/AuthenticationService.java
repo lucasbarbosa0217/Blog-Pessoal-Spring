@@ -1,7 +1,7 @@
 package com.generation.blogpessoal.service;
 
-import com.generation.blogpessoal.model.Usuario;
-import com.generation.blogpessoal.repository.UsuarioRepository;
+import com.generation.blogpessoal.model.User;
+import com.generation.blogpessoal.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,16 +14,18 @@ import java.util.Optional;
 public class AuthenticationService {
 
     @Autowired
-    UsuarioRepository usuarioRepository;
-    public Optional<Usuario> getLoggedUser(){
+    UserRepository userRepository;
+
+    public Optional<User> getLoggedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = null;
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             username = ((UserDetails) authentication.getPrincipal()).getUsername();
         }
-        return usuarioRepository.findByUsuario(username);
+        return userRepository.findByEmail(username);
     }
-    public boolean isLoggedUserAdmin(){
+
+    public boolean isLoggedUserAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = false;
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {

@@ -1,91 +1,79 @@
 package com.generation.blogpessoal.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
+import com.generation.blogpessoal.model.Blog;
+import com.generation.blogpessoal.model.Theme;
+import com.generation.blogpessoal.repository.ThemeRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.generation.blogpessoal.model.Postagem;
-import com.generation.blogpessoal.model.Tema;
-import com.generation.blogpessoal.repository.TemaRepository;
-
-import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/temas")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class TemaController {
-    
+
     @Autowired
-    private TemaRepository temaRepository;
-    
+    private ThemeRepository themeRepository;
+
     @GetMapping
-    public ResponseEntity<List<Tema>> getAll(){
-        return ResponseEntity.ok(temaRepository.findAll());
+    public ResponseEntity<List<Theme>> getAll() {
+        return ResponseEntity.ok(themeRepository.findAll());
     }
-    
-    
-    
+
+
     @GetMapping("/{id}")
-    public ResponseEntity<Tema> getById(@PathVariable Long id){
-        return temaRepository.findById(id)
-            .map(resposta -> ResponseEntity.ok(resposta))
-            .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<Theme> getById(@PathVariable Long id) {
+        return themeRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-    
-    @GetMapping("/descricao/{descricao}")
-    public ResponseEntity<List<Tema>> getByTitle(@PathVariable 
-    String descricao){
-        return ResponseEntity.ok(temaRepository
-            .findAllByDescricaoContainingIgnoreCase(descricao));
+
+    @GetMapping("/descricao/{description}")
+    public ResponseEntity<List<Theme>> getByTitle(@PathVariable
+                                                  String description) {
+        return ResponseEntity.ok(themeRepository
+                .findAllByDescriptionContainingIgnoreCase(description));
     }
-    
+
     @PostMapping
-    public ResponseEntity<Tema> post(@Valid @RequestBody Tema tema){
-		tema.setPostagem(new ArrayList<Postagem>());
+    public ResponseEntity<Theme> post(@Valid @RequestBody Theme theme) {
+        theme.setBlog(new ArrayList<Blog>());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(temaRepository.save(tema));
+                .body(themeRepository.save(theme));
     }
-    
+
     @PutMapping
-    public ResponseEntity<Tema> put(@Valid @RequestBody Tema tema){
-    	Optional<Tema> temaBd = temaRepository.findById(tema.getId());
-    	
-    	if(temaBd.isPresent()) {
-    		if(temaBd.get().getPostagem() != null) {
-    			tema.setPostagem(temaBd.get().getPostagem());
-    		}else {
-    			tema.setPostagem(new ArrayList<Postagem>());
-    		}
-    		return ResponseEntity.status(HttpStatus.OK).body(temaRepository.save(tema));
-    	}
+    public ResponseEntity<Theme> put(@Valid @RequestBody Theme theme) {
+        Optional<Theme> storedTheme = themeRepository.findById(theme.getId());
+
+        if (storedTheme.isPresent()) {
+            if (storedTheme.get().getBlog() != null) {
+                theme.setBlog(storedTheme.get().getBlog());
+            } else {
+                theme.setBlog(new ArrayList<Blog>());
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(themeRepository.save(theme));
+        }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Este tema não existe!");
     }
-    
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        Optional<Tema> tema = temaRepository.findById(id);
-        
-        if(tema.isEmpty())
+        Optional<Theme> theme = themeRepository.findById(id);
+
+        if (theme.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Este tema não existe!");
-        
-        temaRepository.deleteById(id);              
+
+        themeRepository.deleteById(id);
     }
 
 }

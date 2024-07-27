@@ -1,7 +1,13 @@
 package com.generation.blogpessoal.security;
 
-import java.io.IOException;
-
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,14 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.security.SignatureException;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -38,13 +37,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String username = null;
         logger.info(authHeader);
 
-        try{
+        try {
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 token = authHeader.substring(7);
                 username = jwtService.extractUsername(token);
             }
-            
-            if(username != null) {
+
+            if (username != null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 logger.info(userDetails.getAuthorities());
             }
@@ -56,14 +55,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-            
+
             }
             filterChain.doFilter(request, response);
 
-        }catch(ExpiredJwtException | BadCredentialsException |UnsupportedJwtException | MalformedJwtException 
-                | SignatureException | ResponseStatusException e){
+        } catch (ExpiredJwtException | BadCredentialsException | UnsupportedJwtException | MalformedJwtException
+                 | SignatureException | ResponseStatusException e) {
             response.setStatus(HttpStatus.FORBIDDEN.value());
-            return;
         }
     }
 }

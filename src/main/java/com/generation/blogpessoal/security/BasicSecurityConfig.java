@@ -1,7 +1,5 @@
 package com.generation.blogpessoal.security;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -53,34 +53,41 @@ public class BasicSecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-    	http
-	        .sessionManagement(management -> management
-	                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-	        		.csrf(csrf -> csrf.disable())
-	        		.cors(withDefaults());
+        http
+                .sessionManagement(management -> management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable())
+                .cors(withDefaults());
 
-    	http
-	        .authorizeHttpRequests((auth) -> auth
-	                .requestMatchers("/usuarios/logar").permitAll()
-	                .requestMatchers("/usuarios/cadastrar").permitAll()
-	                .requestMatchers("/error/**").permitAll()
-	                .requestMatchers(HttpMethod.GET,"/temas/**").permitAll()
-	                .requestMatchers(HttpMethod.GET,"/temas").permitAll()
-	                .requestMatchers(HttpMethod.GET,"/temas/descricao/**").permitAll()
-	                .requestMatchers(HttpMethod.GET,"/postagens/**").permitAll()
-                    .requestMatchers(HttpMethod.GET,"/postagens/urlPath/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/postagens/texto/**").permitAll()
-                    .requestMatchers(HttpMethod.GET,"/postagens/titulo/**").permitAll()
-                    .requestMatchers(HttpMethod.GET,"/postagens").permitAll()
-	                .requestMatchers(HttpMethod.OPTIONS).permitAll()
-	                .requestMatchers(HttpMethod.DELETE,"/temas/**").hasRole("ADMIN")
-	                .requestMatchers(HttpMethod.POST,"/roles").hasRole("ADMIN")
-	                .anyRequest().authenticated())
-	        .authenticationProvider(authenticationProvider())
-	        .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-	        .httpBasic(withDefaults());
-        
-		return http.build();
+        http
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/usuarios/logar").permitAll()
+                        .requestMatchers("/usuarios/cadastrar").permitAll()
+                        .requestMatchers("/usuarios/all").permitAll()
+                        .requestMatchers("/error/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/temas/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/temas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/temas/descricao/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/temas").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/temas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/temas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/postagens/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/postagens/urlPath/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/postagens/texto/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/postagens/titulo/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/postagens").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/postagens").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/postagens").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/postagens/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/comentario/postagem/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/roles").hasRole("ADMIN")
+                        .anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(withDefaults());
+
+        return http.build();
     }
 
 }

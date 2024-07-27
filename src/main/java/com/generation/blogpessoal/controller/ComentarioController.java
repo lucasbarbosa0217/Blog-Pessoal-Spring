@@ -1,116 +1,88 @@
 package com.generation.blogpessoal.controller;
 
-import java.util.List;
-import java.util.Optional;
+import com.generation.blogpessoal.model.Comment;
+import com.generation.blogpessoal.model.User;
+import com.generation.blogpessoal.repository.BlogRepository;
+import com.generation.blogpessoal.repository.CommentRepository;
+import com.generation.blogpessoal.service.AuthenticationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import com.generation.blogpessoal.model.Comentario;
-import com.generation.blogpessoal.model.Usuario;
-import com.generation.blogpessoal.repository.ComentarioRepository;
-import com.generation.blogpessoal.repository.PostagemRepository;
-import com.generation.blogpessoal.repository.UsuarioRepository;
 
-import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/comentario")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ComentarioController {
-	
-	@Autowired
-	private PostagemRepository postagemRepository;
+
+    @Autowired
+    private BlogRepository blogRepository;
 
 
-	@Autowired
-	private UsuarioRepository usuarioRepository;
-	
+    @Autowired
+    private CommentRepository commentRepository;
 
-	@Autowired
-	private ComentarioRepository comentarioRepository;
-	
-	@GetMapping("/postagem/{id}")
-	public ResponseEntity<List<Comentario>> pegarComentariosPostagem(@PathVariable Long  id){
-		
-		 if(postagemRepository.existsById(id)) {
-			 return ResponseEntity.ok(comentarioRepository.findByPostagemId(id));
-		 }
-		 
-		 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		
-	} 
-	
-	
-	@GetMapping("/{id}")
-	public ResponseEntity<Comentario> comentarioPorId(@PathVariable Long  id){
-		return comentarioRepository.findById(id)
-				.map(response -> ResponseEntity.ok(response))
-				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-	} 
-	
-	
-	@PostMapping("/comentar")
-	public ResponseEntity<Comentario> comentar(@Valid @RequestBody Comentario comentario){
-		if(comentario.getPostagem() == null || postagemRepository.findById(comentario.getPostagem().getId()).isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND); 
-		}
-		
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-		Optional<Usuario> usuarioBd = usuarioRepository.findByUsuario(username);
+    @Autowired
+    private AuthenticationService authenticationService;
 
-		if(usuarioBd.isPresent()) {
-			comentario.setUsuario(usuarioBd.get());
-		}else {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não existe no banco de dados!");
-		}
-		
-		return ResponseEntity.status(HttpStatus.CREATED).body(comentarioRepository.save(comentario));
-	}
-	
-	
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@DeleteMapping("/{id}")
-	public void deleteComentario(@PathVariable Long id) {
-		Optional<Comentario> comentario = comentarioRepository.findById(id);
+    @GetMapping("/postagem/{id}")
+    public ResponseEntity<List<Comment>> pegarComentariosPostagem(@PathVariable Long id) {
 
-		if (comentario.isEmpty())
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (blogRepository.existsById(id)) {
+            return ResponseEntity.ok(commentRepository.findByBlogId(id));
+        }
 
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-		String username = null;
-		boolean isAdmin = false;
+    }
 
-		if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-			username = ((UserDetails) authentication.getPrincipal()).getUsername();
-			isAdmin = ((UserDetails) authentication.getPrincipal()).getAuthorities().stream()
-					.anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
-		}
+    @GetMapping("/{id}")
+    public ResponseEntity<Comment> getCommentById(@PathVariable Long id) {
+        return commentRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 
-		Optional<Usuario> usuarioBanco = usuarioRepository.findByUsuario(username);
+    @PostMapping("/comentar")
+    public ResponseEntity<Comment> saveComment(@Valid @RequestBody Comment comment) {
+        if (comment.getBlog() == null || blogRepository.findById(comment.getBlog().getId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
 
-		if(usuarioBanco.isPresent()) {
-		if (comentario.get().getUsuario().equals(usuarioBanco.get()) || isAdmin) {
-			comentarioRepository.deleteById(id);
-			return;
-		}}
+        Optional<User> storedUser = authenticationService.getLoggedUser();
 
-		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o comentário!");
-	}
-	
-	
+        if (storedUser.isPresent()) {
+            comment.setUser(storedUser.get());
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário logado não existe no banco de dados!");
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentRepository.save(comment));
+    }
+
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void deleteComment(@PathVariable Long id) {
+        Optional<Comment> comment = commentRepository.findById(id);
+
+        if (comment.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        Optional<User> storedUser = authenticationService.getLoggedUser();
+
+        if (storedUser.isPresent()) {
+            if (comment.get().getUser().equals(storedUser.get()) || authenticationService.isLoggedUserAdmin()) {
+                commentRepository.deleteById(id);
+                return;
+            }
+        }
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário logado não é o mesmo que fez o comentário!");
+    }
 }

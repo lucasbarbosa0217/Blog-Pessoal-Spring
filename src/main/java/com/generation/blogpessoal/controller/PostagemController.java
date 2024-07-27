@@ -1,8 +1,18 @@
 package com.generation.blogpessoal.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import com.generation.blogpessoal.model.Blog;
+import com.generation.blogpessoal.model.Theme;
+import com.generation.blogpessoal.model.User;
+import com.generation.blogpessoal.repository.BlogRepository;
+import com.generation.blogpessoal.repository.ThemeRepository;
+import com.generation.blogpessoal.service.AuthenticationService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,155 +20,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import com.generation.blogpessoal.service.AuthenticationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
-import com.generation.blogpessoal.model.Comentario;
-import com.generation.blogpessoal.model.Postagem;
-import com.generation.blogpessoal.model.Tema;
-import com.generation.blogpessoal.model.Usuario;
-import com.generation.blogpessoal.repository.PostagemRepository;
-import com.generation.blogpessoal.repository.TemaRepository;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/postagens")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class PostagemController {
 
     @Autowired
-    private PostagemRepository postRepository;
+    private BlogRepository blogRepository;
 
     @Autowired
-    private TemaRepository themeRepository;
+    private ThemeRepository themeRepository;
 
     @Autowired
     private AuthenticationService authenticationService;
-
-    @GetMapping
-    public ResponseEntity<List<Postagem>> getAll() {
-        return ResponseEntity.ok(postRepository.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Postagem> getById(@PathVariable Long id) {
-        return postRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "O post de id "+ id+ " não existe!"));
-    }
-
-    @GetMapping("titulo/{title}")
-    public ResponseEntity<List<Postagem>> getByTitle(@PathVariable String title) {
-        return ResponseEntity.ok(postRepository.findAllByTituloContainingIgnoreCase(title));
-    }
-
-    @GetMapping("texto/{text}")
-    public ResponseEntity<List<Postagem>> getByText(@PathVariable String text) {
-        return ResponseEntity.ok(postRepository.findAllByTextoContainingIgnoreCase(text));
-    }
-
-    @GetMapping("urlPath/{urlPath}")
-    public ResponseEntity<Postagem> getByUrlPath(@PathVariable String urlPath) {
-        return postRepository.findByUrlpath(urlPath)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post não existe."));
-    }
-
-    @PostMapping
-    public ResponseEntity<Postagem> post(@Valid @RequestBody Postagem post) {
-        Optional<Usuario> loggedUser = authenticationService.getLoggedUser();
-
-        if (loggedUser.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O usuário logado não existe!");
-        }
-
-       String slugUrl = toSlug(post.getTitulo());
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-
-        if(postRepository.findByUrlpath(slugUrl).isPresent()){
-            slugUrl = slugUrl + "-" +dateFormat.format(new Date());
-            slugUrl = toSlug(slugUrl);
-        }
-
-        post.setUrlpath(slugUrl);
-
-        Optional<Tema> theme = Optional.ofNullable(post.getTema());
-        if (theme.isEmpty() || themeRepository.findById(theme.get().getId()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tema não existe!");
-        }
-
-        post.setUsuario(loggedUser.get());
-        if (post.getComentario() == null) {
-            post.setComentario(new ArrayList<Comentario>());
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(postRepository.save(post));
-    }
-
-    @PutMapping
-    public ResponseEntity<Postagem> put(@Valid @RequestBody Postagem postagem) {
-        Optional<Postagem> storedPost = postRepository.findById(postagem.getId());
-        if (storedPost.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A Postagem não existe");
-        }
-        Optional<Tema> theme = Optional.ofNullable(postagem.getTema());
-        Optional<Tema> storedTheme = Optional.empty();
-        if (theme.isPresent()) {
-            storedTheme = themeRepository.findById(theme.get().getId());
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O Tema não existe na sua requisição!");
-        }
-        Optional<Usuario> loggedUser = authenticationService.getLoggedUser();
-        if (loggedUser.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário logado não existe!");
-        }
-        boolean isAdmin = authenticationService.isLoggedUserAdmin();
-
-        if (storedTheme.isPresent()) {
-            if (loggedUser.get().getUsuario().equals(storedPost.get().getUsuario().getUsuario()) || isAdmin) {
-                if (!isAdmin) {
-                    postagem.setUsuario(storedPost.get().getUsuario());
-                }
-                postagem.setComentario(storedPost.get().getComentario());
-                return ResponseEntity.status(HttpStatus.OK).body(postRepository.save(postagem));
-            } else {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não foi que fez o post!");
-            }
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O Tema não existe no banco de dados!");
-        }
-    }
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        Optional<Postagem> storedPost = postRepository.findById(id);
-
-        if (storedPost.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        Optional<Usuario> loggedUser = authenticationService.getLoggedUser();
-        boolean isAdmin = authenticationService.isLoggedUserAdmin();
-
-        if (loggedUser.isPresent()) {
-            if (storedPost.get().getUsuario().equals(loggedUser.get()) || isAdmin) {
-                postRepository.deleteById(id);
-                return;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o post!");
-    }
 
     public static String toSlug(String title) {
         String slug = title.toLowerCase();
@@ -167,5 +41,126 @@ public class PostagemController {
         slug = slug.replaceAll("[^a-z0-9\\s-]", "").replaceAll("\\s+", "-").replaceAll("-+", "-");
         slug = slug.replaceAll("^-|-$", "");
         return slug;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Blog>> getAll() {
+        return ResponseEntity.ok(blogRepository.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Blog> getById(@PathVariable Long id) {
+        return blogRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "O post de id " + id + " não existe!"));
+    }
+
+    @GetMapping("titulo/{title}")
+    public ResponseEntity<List<Blog>> getByTitle(@PathVariable String title) {
+        return ResponseEntity.ok(blogRepository.findAllByTitleContainingIgnoreCase(title));
+    }
+
+    @GetMapping("texto/{text}")
+    public ResponseEntity<List<Blog>> getByText(@PathVariable String text) {
+        return ResponseEntity.ok(blogRepository.findAllByTextContainingIgnoreCase(text));
+    }
+
+    @GetMapping("urlPath/{urlPath}")
+    public ResponseEntity<Blog> getByUrlPath(@PathVariable String urlPath) {
+        return blogRepository.findByUrlpath(urlPath)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post não existe."));
+    }
+
+    @PostMapping
+    public ResponseEntity<Blog> post(@Valid @RequestBody Blog post) {
+        Optional<User> loggedUser = authenticationService.getLoggedUser();
+
+        if (loggedUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O usuário logado não existe!");
+        }
+
+        String slugUrl = toSlug(post.getTitle());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+        if (blogRepository.findByUrlpath(slugUrl).isPresent()) {
+            slugUrl = slugUrl + "-" + dateFormat.format(new Date());
+            slugUrl = toSlug(slugUrl);
+        }
+
+        post.setUrlpath(slugUrl);
+
+        Optional<Theme> theme = Optional.ofNullable(post.getTheme());
+        if (theme.isEmpty() || themeRepository.findById(theme.get().getId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tema não existe!");
+        }
+
+        post.setUser(loggedUser.get());
+        if (post.getComment() == null) {
+            post.setComment(new ArrayList<>());
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(blogRepository.save(post));
+    }
+
+    @PutMapping
+    public ResponseEntity<Blog> put(@Valid @RequestBody Blog blog) {
+        Optional<Blog> storedBlog = blogRepository.findById(blog.getId());
+        if (storedBlog.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A Postagem não existe");
+        }
+        Optional<Theme> theme = Optional.ofNullable(blog.getTheme());
+        Optional<Theme> storedTheme = Optional.empty();
+        if (theme.isPresent()) {
+            storedTheme = themeRepository.findById(theme.get().getId());
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O Tema não existe na sua requisição!");
+        }
+        Optional<User> loggedUser = authenticationService.getLoggedUser();
+        if (loggedUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário logado não existe!");
+        }
+        boolean isAdmin = authenticationService.isLoggedUserAdmin();
+
+        if (storedTheme.isPresent()) {
+            if (loggedUser.get().getEmail().equals(storedBlog.get().getUser().getEmail()) || isAdmin) {
+                blog.setUser(storedBlog.get().getUser());
+                blog.setCreatedTimestamp(storedBlog.get().getCreatedTimestamp());
+                blog.setComment(storedBlog.get().getComment());
+                String slugUrl = toSlug(blog.getTitle());
+                if (!slugUrl.equals(storedBlog.get().getUrlpath())) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                    if (blogRepository.findByUrlpath(slugUrl).isPresent()) {
+                        slugUrl = slugUrl + "-" + dateFormat.format(new Date());
+                        slugUrl = toSlug(slugUrl);
+                    }
+                    blog.setUrlpath(slugUrl);
+                }
+                blog.setUrlpath(slugUrl);
+                return ResponseEntity.status(HttpStatus.OK).body(blogRepository.save(blog));
+            } else {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não foi que fez o post!");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O Tema não existe no banco de dados!");
+        }
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        Optional<Blog> storedBlog = blogRepository.findById(id);
+
+        if (storedBlog.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        Optional<User> loggedUser = authenticationService.getLoggedUser();
+        boolean isAdmin = authenticationService.isLoggedUserAdmin();
+
+        if (loggedUser.isPresent()) {
+            if (storedBlog.get().getUser().equals(loggedUser.get()) || isAdmin) {
+                blogRepository.deleteById(id);
+                return;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o post!");
     }
 }
