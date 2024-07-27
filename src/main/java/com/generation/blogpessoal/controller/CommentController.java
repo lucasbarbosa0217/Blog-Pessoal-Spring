@@ -18,7 +18,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/comentario")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class ComentarioController {
+public class CommentController {
 
     @Autowired
     private BlogRepository blogRepository;

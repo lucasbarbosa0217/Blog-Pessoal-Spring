@@ -27,7 +27,7 @@ public class Blog {
     private String title;
 
     @NotBlank(message = "O atributo text é Obrigatório!")
-    @Size(min = 10, max = 1000, message = "O atributo text deve conter no mínimo 10 e no máximo 1000 caracteres")
+    @Size(min = 10, max = 3000, message = "O atributo text deve conter no mínimo 10 e no máximo 3000 caracteres")
     private String text;
 
     private String urlpath;

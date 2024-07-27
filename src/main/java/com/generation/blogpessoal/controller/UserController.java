@@ -24,7 +24,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/usuarios")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class UsuarioController {
+public class UserController {
 
     private final List<String> allowedFileTypes = List.of("image/jpeg", "image/png", "image/webp", "image/gif");
     @Autowired

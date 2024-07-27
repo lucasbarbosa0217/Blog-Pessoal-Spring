@@ -23,7 +23,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/postagens")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class PostagemController {
+public class BlogController {
 
     @Autowired
     private BlogRepository blogRepository;
@@ -73,14 +73,14 @@ public class PostagemController {
     }
 
     @PostMapping
-    public ResponseEntity<Blog> post(@Valid @RequestBody Blog post) {
+    public ResponseEntity<Blog> post(@Valid @RequestBody Blog blog) {
         Optional<User> loggedUser = authenticationService.getLoggedUser();
 
         if (loggedUser.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O usuário logado não existe!");
         }
 
-        String slugUrl = toSlug(post.getTitle());
+        String slugUrl = toSlug(blog.getTitle());
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
         if (blogRepository.findByUrlpath(slugUrl).isPresent()) {
@@ -88,18 +88,18 @@ public class PostagemController {
             slugUrl = toSlug(slugUrl);
         }
 
-        post.setUrlpath(slugUrl);
+        blog.setUrlpath(slugUrl);
 
-        Optional<Theme> theme = Optional.ofNullable(post.getTheme());
+        Optional<Theme> theme = Optional.ofNullable(blog.getTheme());
         if (theme.isEmpty() || themeRepository.findById(theme.get().getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tema não existe!");
         }
 
-        post.setUser(loggedUser.get());
-        if (post.getComment() == null) {
-            post.setComment(new ArrayList<>());
+        blog.setUser(loggedUser.get());
+        if (blog.getComment() == null) {
+            blog.setComment(new ArrayList<>());
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(blogRepository.save(post));
+        return ResponseEntity.status(HttpStatus.CREATED).body(blogRepository.save(blog));
     }
 
     @PutMapping
