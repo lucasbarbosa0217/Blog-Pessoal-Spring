@@ -68,17 +68,11 @@ public class BasicSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/temas/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/temas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/temas/descricao/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/temas").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/temas/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/temas/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/postagens/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/postagens/urlPath/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/postagens/texto/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/postagens/titulo/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/postagens").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/postagens").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/postagens").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/postagens/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/comentario/postagem/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
                         .requestMatchers(HttpMethod.POST, "/roles").hasRole("ADMIN")
@@ -86,7 +80,12 @@ public class BasicSecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(withDefaults());
-
+        //    .requestMatchers(HttpMethod.POST, "/temas").hasRole("ADMIN")
+        //    .requestMatchers(HttpMethod.DELETE, "/temas/**").hasRole("ADMIN")
+        //     .requestMatchers(HttpMethod.PUT, "/temas/**").hasRole("ADMIN")
+        // .requestMatchers(HttpMethod.POST, "/postagens").hasRole("ADMIN")
+        // .requestMatchers(HttpMethod.PUT, "/postagens").hasRole("ADMIN")
+        //  .requestMatchers(HttpMethod.DELETE, "/postagens/**").hasRole("ADMIN")
         return http.build();
     }
 
