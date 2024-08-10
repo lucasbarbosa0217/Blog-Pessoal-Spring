@@ -2,6 +2,8 @@ package com.generation.blogpessoal.model;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 public class UserLogin {
 
     private Long id;
@@ -10,6 +12,8 @@ public class UserLogin {
     private String password;
     private String photo;
     private String token;
+    
+    @JsonIgnoreProperties("users")
     private Set<Role> role;
 
     public Set<Role> getRole() {
