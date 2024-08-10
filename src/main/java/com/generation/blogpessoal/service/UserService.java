@@ -59,6 +59,7 @@ public class UserService {
                 usuarioLogin.get().setPhoto(usuario.get().getPhoto());
                 usuarioLogin.get().setToken(generateToken(usuarioLogin.get().getEmail()));
                 usuarioLogin.get().setPassword("");
+                usuarioLogin.get().setRole(usuario.get().getRoles());
                 return usuarioLogin;
             }
         }

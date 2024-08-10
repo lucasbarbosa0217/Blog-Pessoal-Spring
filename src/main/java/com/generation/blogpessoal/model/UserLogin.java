@@ -1,5 +1,7 @@
 package com.generation.blogpessoal.model;
 
+import java.util.Set;
+
 public class UserLogin {
 
     private Long id;
@@ -8,8 +10,17 @@ public class UserLogin {
     private String password;
     private String photo;
     private String token;
+    private Set<Role> role;
 
-    public Long getId() {
+    public Set<Role> getRole() {
+		return role;
+	}
+
+	public void setRole(Set<Role> role) {
+		this.role = role;
+	}
+
+	public Long getId() {
         return id;
     }
 
