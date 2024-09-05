@@ -5,6 +5,7 @@ import com.generation.blogpessoal.model.Theme;
 import com.generation.blogpessoal.model.User;
 import com.generation.blogpessoal.repository.BlogRepository;
 import com.generation.blogpessoal.repository.ThemeRepository;
+import com.generation.blogpessoal.repository.UserRepository;
 import com.generation.blogpessoal.service.AuthenticationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +33,9 @@ public class BlogController {
 
     @Autowired
     private AuthenticationService authenticationService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     public static String toSlug(String title) {
         String slug = title.toLowerCase();
@@ -49,7 +52,7 @@ public class BlogController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Blog> getById(@PathVariable Long id) {
+    public ResponseEntity<Blog> getById(@PathVariable String id) {
         return blogRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "O post de id " + id + " não existe!"));
@@ -64,10 +67,25 @@ public class BlogController {
     public ResponseEntity<List<Blog>> getByText(@PathVariable String text) {
         return ResponseEntity.ok(blogRepository.findAllByTextContainingIgnoreCase(text));
     }
+    
+    @GetMapping("tema/{text}")
+    public ResponseEntity<List<Blog>> getByTheme(@PathVariable String text) {
+    	return themeRepository.findById(text)
+                .map((tema) ->  ResponseEntity.ok(blogRepository.findAllByTheme((Theme) tema)))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "O tema de id " + text + " não existe!"));
+    }
+    
+    @GetMapping("usuario/{text}")
+    public ResponseEntity<List<Blog>> getByUser(@PathVariable String text) {
+    	return userRepository.findById(text)
+                .map((user) ->  ResponseEntity.ok(blogRepository.findAllByUser((User) user)))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "O user de id " + text + " não existe!"));
+
+    }
 
     @GetMapping("urlPath/{urlPath}")
     public ResponseEntity<Blog> getByUrlPath(@PathVariable String urlPath) {
-        return blogRepository.findByUrlpath(urlPath)
+        return blogRepository.findByUrlPath(urlPath)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post não existe."));
     }
@@ -83,12 +101,12 @@ public class BlogController {
         String slugUrl = toSlug(blog.getTitle());
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
-        if (blogRepository.findByUrlpath(slugUrl).isPresent()) {
+        if (blogRepository.findByUrlPath(slugUrl).isPresent()) {
             slugUrl = slugUrl + "-" + dateFormat.format(new Date());
             slugUrl = toSlug(slugUrl);
         }
 
-        blog.setUrlpath(slugUrl);
+        blog.setUrlPath(slugUrl);
 
         Optional<Theme> theme = Optional.ofNullable(blog.getTheme());
         if (theme.isEmpty() || themeRepository.findById(theme.get().getId()).isEmpty()) {
@@ -96,9 +114,7 @@ public class BlogController {
         }
 
         blog.setUser(loggedUser.get());
-        if (blog.getComment() == null) {
-            blog.setComment(new ArrayList<>());
-        }
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(blogRepository.save(blog));
     }
 
@@ -121,21 +137,27 @@ public class BlogController {
         }
         boolean isAdmin = authenticationService.isLoggedUserAdmin();
 
+        
+        Optional<User> user =  userRepository.findById(storedBlog.get().getUser().getId());        
+        
+        if(user.isEmpty()) {
+        	throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário do post não existe!");
+        	}
+        
         if (storedTheme.isPresent()) {
-            if (loggedUser.get().getEmail().equals(storedBlog.get().getUser().getEmail()) || isAdmin) {
-                blog.setUser(storedBlog.get().getUser());
+            if (loggedUser.get().getEmail().equals(user.get().getEmail()) || isAdmin) {
+                blog.setUser(user.get());
                 blog.setCreatedTimestamp(storedBlog.get().getCreatedTimestamp());
-                blog.setComment(storedBlog.get().getComment());
                 String slugUrl = toSlug(blog.getTitle());
-                if (!slugUrl.equals(storedBlog.get().getUrlpath())) {
+                if (!slugUrl.equals(storedBlog.get().getUrlPath())) {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                    if (blogRepository.findByUrlpath(slugUrl).isPresent()) {
+                    if (blogRepository.findByUrlPath(slugUrl).isPresent()) {
                         slugUrl = slugUrl + "-" + dateFormat.format(new Date());
                         slugUrl = toSlug(slugUrl);
                     }
-                    blog.setUrlpath(slugUrl);
+                    blog.setUrlPath(slugUrl);
                 }
-                blog.setUrlpath(slugUrl);
+                blog.setUrlPath(slugUrl);
                 return ResponseEntity.status(HttpStatus.OK).body(blogRepository.save(blog));
             } else {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não foi que fez o post!");
@@ -147,7 +169,7 @@ public class BlogController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable String id) {
         Optional<Blog> storedBlog = blogRepository.findById(id);
 
         if (storedBlog.isEmpty())
@@ -155,12 +177,20 @@ public class BlogController {
         Optional<User> loggedUser = authenticationService.getLoggedUser();
         boolean isAdmin = authenticationService.isLoggedUserAdmin();
 
+        Optional<User> user =  userRepository.findById(storedBlog.get().getUser().getId());        
+
+        if(user.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o post!");
+
+        }
+        
+        
         if (loggedUser.isPresent()) {
-            if (storedBlog.get().getUser().equals(loggedUser.get()) || isAdmin) {
+           if (user.get().equals(loggedUser.get()) || isAdmin) {
                 blogRepository.deleteById(id);
                 return;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o post!");
+           }
+       }
+       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o post!");
     }
 }

@@ -1,72 +1,91 @@
 package com.generation.blogpessoal.model;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
+
 import jakarta.validation.constraints.NotBlank;
-import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.validation.constraints.NotNull;
+
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "tb_comment")
+@Document(collection = "comment")
 public class Comment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @NotBlank(message = "O atributo text é obrigatório!")
     private String text;
 
-    @ManyToOne
-    @JsonIgnoreProperties({"comment", "user"})
+    @LastModifiedDate
+    private LocalDateTime updatedTimestamp;
+    
+    @CreatedDate
+    private LocalDateTime createdTimestamp;
+
+    public LocalDateTime getCreatedTimestamp() {
+		return createdTimestamp;
+	}
+
+	public void setCreatedTimestamp(LocalDateTime createdTimestamp) {
+		this.createdTimestamp = createdTimestamp;
+	}
+
+	@NotNull(message = "O comentario precisa de um blog")
+	@DBRef
+	@JsonIgnoreProperties({"text", "user"})
     private Blog blog;
 
-    @ManyToOne
-    @JsonIgnoreProperties({"password", "comment", "blog"})
+    @JsonIgnoreProperties("password")
+    @DBRef
     private User user;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedTimestamp;
+	public String getId() {
+		return id;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public String getText() {
+		return text;
+	}
 
-    public String getText() {
-        return text;
-    }
+	public void setText(String text) {
+		this.text = text;
+	}
 
-    public void setText(String conteudo) {
-        this.text = conteudo;
-    }
+	public LocalDateTime getUpdatedTimestamp() {
+		return updatedTimestamp;
+	}
 
-    public LocalDateTime getUpdatedTimestamp() {
-        return updatedTimestamp;
-    }
+	public void setUpdatedTimestamp(LocalDateTime updatedTimestamp) {
+		this.updatedTimestamp = updatedTimestamp;
+	}
 
-    public void setUpdatedTimestamp(LocalDateTime data) {
-        this.updatedTimestamp = data;
-    }
+	public Blog getBlog() {
+		return blog;
+	}
 
-    public Blog getBlog() {
-        return blog;
-    }
+	public void setBlog(Blog blog) {
+		this.blog = blog;
+	}
 
-    public void setBlog(Blog blog) {
-        this.blog = blog;
-    }
+	public User getUser() {
+		return user;
+	}
 
-    public User getUser() {
-        return user;
-    }
+	public void setUser(User user) {
+		this.user = user;
+	}
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+   
 }
 

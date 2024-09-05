@@ -31,6 +31,7 @@ public class AdminCreator {
     @Value("${admin.user.email}")
     private String email;
 
+
     @PostConstruct
     public void init() {
         // Criar roles se não existirem
@@ -45,7 +46,7 @@ public class AdminCreator {
         // Criar usuário admin se não existir
         if (userRepository.findByEmail(email).isEmpty()) {
             User admin = new User();
-            admin.setId(1L);
+            admin.setId("1");
             admin.setName("Admin");
             admin.setEmail(email);
             admin.setPassword(passwordEncoder.encode(password));

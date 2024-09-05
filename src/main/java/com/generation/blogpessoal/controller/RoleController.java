@@ -25,7 +25,7 @@ public class RoleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getById(@PathVariable Long id) {
+    public ResponseEntity<Role> getById(@PathVariable String id) {
         return roleRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -43,7 +43,7 @@ public class RoleController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable String id) {
         if (roleRepository.findById(id).isPresent()) {
             roleRepository.deleteById(id);
         } else {

@@ -1,6 +1,8 @@
 package com.generation.blogpessoal.controller;
 
+import com.generation.blogpessoal.model.Blog;
 import com.generation.blogpessoal.model.Comment;
+import com.generation.blogpessoal.model.Theme;
 import com.generation.blogpessoal.model.User;
 import com.generation.blogpessoal.repository.BlogRepository;
 import com.generation.blogpessoal.repository.CommentRepository;
@@ -31,18 +33,14 @@ public class CommentController {
     private AuthenticationService authenticationService;
 
     @GetMapping("/postagem/{id}")
-    public ResponseEntity<List<Comment>> pegarComentariosPostagem(@PathVariable Long id) {
-
-        if (blogRepository.existsById(id)) {
-            return ResponseEntity.ok(commentRepository.findByBlogId(id));
-        }
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-
+    public ResponseEntity<List<Comment>> pegarComentariosPostagem(@PathVariable String id) {
+    	return blogRepository.findById(id)
+                .map((blog) ->  ResponseEntity.ok(commentRepository.findAllByBlog((Blog) blog)))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "O post de id " + id + " não existe!"));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Comment> getCommentById(@PathVariable Long id) {
+    public ResponseEntity<Comment> getCommentById(@PathVariable String id) {
         return commentRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -51,7 +49,7 @@ public class CommentController {
     @PostMapping("/comentar")
     public ResponseEntity<Comment> saveComment(@Valid @RequestBody Comment comment) {
         if (comment.getBlog() == null || blogRepository.findById(comment.getBlog().getId()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Esse blog não existe.");
         }
 
         Optional<User> storedUser = authenticationService.getLoggedUser();
@@ -68,7 +66,7 @@ public class CommentController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deleteComment(@PathVariable Long id) {
+    public void deleteComment(@PathVariable String id) {
         Optional<Comment> comment = commentRepository.findById(id);
 
         if (comment.isEmpty())

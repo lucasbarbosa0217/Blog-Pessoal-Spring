@@ -1,48 +1,36 @@
 package com.generation.blogpessoal.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.List;
 
-@Entity
-@Table(name = "tb_themes")
+@Document(collection = "theme")
 public class Theme {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @NotNull(message = "O Atributo description é obrigatório")
+    @NotNull(message = "O atributo description é obrigatório")
     private String description;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "theme", cascade = CascadeType.REMOVE)
-    @JsonIgnoreProperties("theme")
-    private List<Blog> blog;
 
-    public Long getId() {
-        return this.id;
-    }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public String getDescription() {
-        return this.description;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public void setDescription(String descricao) {
-        this.description = descricao;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public List<Blog> getBlog() {
-        return blog;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public void setBlog(List<Blog> blog) {
-        this.blog = blog;
-    }
 
 }
