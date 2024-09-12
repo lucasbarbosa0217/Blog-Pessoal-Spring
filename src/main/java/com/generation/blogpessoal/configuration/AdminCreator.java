@@ -46,7 +46,6 @@ public class AdminCreator {
         // Criar usuário admin se não existir
         if (userRepository.findByEmail(email).isEmpty()) {
             User admin = new User();
-            admin.setId("1");
             admin.setName("Admin");
             admin.setEmail(email);
             admin.setPassword(passwordEncoder.encode(password));
