@@ -21,9 +21,9 @@ public class ImageService {
     @Value("${firebase.secret}")
     private String connectionString;
 
-    private String uploadFile(File file, String fileName) throws IOException {
+    private String uploadFile(File file, String fileName, String folder) throws IOException {
         InputStream inputStream = new ByteArrayInputStream(connectionString.getBytes(StandardCharsets.UTF_8));
-        fileName = "userProfileImage/" + fileName;
+        fileName = folder +"/" + fileName;
         BlobId blobId = BlobId.of("blog-a5aab.appspot.com", fileName); // Replace with your bucker name
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("image/jpeg").build();
         Credentials credentials = GoogleCredentials.fromStream(inputStream);
@@ -49,12 +49,12 @@ public class ImageService {
     }
 
 
-    public String upload(MultipartFile multipartFile) {
+    public String upload(MultipartFile multipartFile, String folder) {
         try {
             String fileName = multipartFile.getOriginalFilename();
             fileName = UUID.randomUUID().toString().concat(this.getExtension(fileName));
             File file = this.convertToFile(multipartFile, fileName);
-            String URL = this.uploadFile(file, fileName);
+            String URL = this.uploadFile(file, fileName, folder);
             file.delete();
             return URL;
         } catch (Exception e) {

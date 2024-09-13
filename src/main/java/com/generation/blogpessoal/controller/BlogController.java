@@ -7,11 +7,14 @@ import com.generation.blogpessoal.repository.BlogRepository;
 import com.generation.blogpessoal.repository.ThemeRepository;
 import com.generation.blogpessoal.repository.UserRepository;
 import com.generation.blogpessoal.service.AuthenticationService;
+import com.generation.blogpessoal.service.ImageService;
+
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.text.Normalizer;
@@ -36,6 +39,11 @@ public class BlogController {
     
     @Autowired
     private UserRepository userRepository;
+    
+    private final List<String> allowedFileTypes = List.of("image/jpeg", "image/png", "image/webp", "image/gif");
+    
+    @Autowired
+    private ImageService imageService;
 
     public static String toSlug(String title) {
         String slug = title.toLowerCase();
@@ -193,4 +201,26 @@ public class BlogController {
        }
        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário logado não é o mesmo que fez o post!");
     }
+    
+    
+    @PostMapping("/foto")
+    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile multipartFile) {
+        if (multipartFile.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Por favor, selecione uma foto para carregar.");
+        }
+
+        String contentType = multipartFile.getContentType();
+        if (!allowedFileTypes.contains(contentType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de arquivo não suportado. Apenas JPG, PNG, WEBP e GIF são permitidos.");
+        }
+
+        if (multipartFile.getSize() > 10 * 1024 * 1024) { // 10MB
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tamanho do arquivo excede o limite de 10MB.");
+        }
+
+            String url = imageService.upload(multipartFile, "blogImage");
+            return ResponseEntity.ok(url);
+    
+    }
+
 }

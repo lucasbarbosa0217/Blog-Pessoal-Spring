@@ -95,7 +95,7 @@ public class UserController {
 
         Optional<User> storedUser = authenticationService.getLoggedUser();
         if (storedUser.isPresent()) {
-            String url = imageService.upload(multipartFile);
+            String url = imageService.upload(multipartFile, "userProfileImage");
             storedUser.get().setPhoto(url);
             userRepository.save(storedUser.get());
             return ResponseEntity.ok(url);
