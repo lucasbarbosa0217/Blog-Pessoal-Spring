@@ -40,7 +40,14 @@ public class UserService {
             Optional<User> buscaUsuario = userRepository.findByEmail(user.getEmail());
             if ((buscaUsuario.isPresent()) && (!Objects.equals(buscaUsuario.get().getId(), user.getId())))
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já foi cadastrado!", null);
-            user.setPassword(encryptUser(user.getEmail()));
+            if(user.getPassword() != null && !user.getPassword().isEmpty()) {
+                user.setPassword(encryptUser(user.getPassword()));
+
+            }else {
+                user.setPassword(encryptUser(buscaUsuario.get().getPassword()));
+            }
+            
+            
             return Optional.of(userRepository.save(user));
         }
         return Optional.empty();
