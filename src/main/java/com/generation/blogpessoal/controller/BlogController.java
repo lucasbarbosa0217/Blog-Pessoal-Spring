@@ -11,6 +11,8 @@ import com.generation.blogpessoal.service.ImageService;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,11 +56,16 @@ public class BlogController {
         return slug;
     }
 
+    @GetMapping("/pagina")
+    public ResponseEntity<Page<Blog>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(blogRepository.findAll(pageable));
+    }
+    
     @GetMapping
-    public ResponseEntity<List<Blog>> getAll() {
+    public ResponseEntity<List<Blog>> getAllnoPage() {
         return ResponseEntity.ok(blogRepository.findAll());
     }
-
+    
     @GetMapping("/{id}")
     public ResponseEntity<Blog> getById(@PathVariable String id) {
         return blogRepository.findById(id)
