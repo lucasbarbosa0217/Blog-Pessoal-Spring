@@ -61,6 +61,11 @@ public class BlogController {
         return ResponseEntity.ok(blogRepository.findAll(pageable));
     }
     
+    @GetMapping("/pagina/pesquisa/{text}")
+    public ResponseEntity<Page<Blog>> searchTextAndTitle(@PathVariable String text ,Pageable pageable) {
+        return ResponseEntity.ok(blogRepository.findAllByTitleOrTextContainingIgnoreCase(text, pageable));
+    }
+    
     @GetMapping
     public ResponseEntity<List<Blog>> getAllnoPage() {
         return ResponseEntity.ok(blogRepository.findAll());

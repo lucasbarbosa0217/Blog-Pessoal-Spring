@@ -7,6 +7,7 @@ import com.generation.blogpessoal.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -24,6 +25,9 @@ public interface BlogRepository extends MongoRepository<Blog, String> {
     List<Blog> findAllByUser(@Param("user") User user);
 
     Page<Blog> findAll(Pageable pageable);
+    
+    @Query("{ $or: [ { 'title': { $regex: ?0, $options: 'i' } }, { 'text': { $regex: ?0, $options: 'i' } } ] }")
+    Page<Blog> findAllByTitleOrTextContainingIgnoreCase(String text, Pageable pageable);
 
  
     Optional<Blog> findByUrlPath(@Param("urlPath") String urlpath);
