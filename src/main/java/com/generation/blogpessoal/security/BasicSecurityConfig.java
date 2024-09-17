@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -67,6 +68,7 @@ public class BasicSecurityConfig {
 				.requestMatchers(HttpMethod.GET, "/postagens/titulo/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/postagens").permitAll()
 				.requestMatchers(HttpMethod.GET, "/comentario/postagem/**").permitAll()
+				.requestMatchers(HttpMethod.GET, "/postagens/pagina/pesquisa/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/comentario/**").permitAll()
 				.requestMatchers(HttpMethod.POST, "/temas").hasRole("ADMIN")
 				.requestMatchers(HttpMethod.DELETE, "/temas/**").hasRole("ADMIN")
